@@ -4,3 +4,5 @@ __pycache__/
 dist/
 /icons/
 .DS_Store
+*.svg
+*.png
