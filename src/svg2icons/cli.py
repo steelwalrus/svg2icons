@@ -14,7 +14,7 @@ def build_parser() -> argparse.ArgumentParser:
     """Describe the command without performing any conversion."""
     parser = argparse.ArgumentParser(
         prog="svg2icons",
-        description="Generate a folder of PNG icons from one SVG.",
+        description="Generate PNG icons and a 32x32 favicon.png from one SVG.",
     )
     parser.add_argument("source", type=Path, metavar="SVG", help="source SVG file")
     parser.add_argument(
@@ -23,7 +23,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--sizes", type=int, nargs="+", default=DEFAULT_SIZES, metavar="PX",
-        help="replace the default sizes: " + ", ".join(map(str, DEFAULT_SIZES)),
+        help="replace the default sizes: " + ", ".join(map(str, DEFAULT_SIZES))
+        + "; favicon.png is always generated at 32x32",
     )
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {version('svg2icons')}",

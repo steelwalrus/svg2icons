@@ -18,15 +18,24 @@ class GenerationTests(unittest.TestCase):
     def test_defaults_produce_named_icons(self):
         render = Mock(side_effect=lambda svg, size: str(size).encode())
         icons = generate_icons(SVG, render=render)
-        self.assertEqual(tuple(icons), tuple(f"{s}x{s}.png" for s in DEFAULT_SIZES))
+        self.assertEqual(
+            tuple(icons), (*[f"{s}x{s}.png" for s in DEFAULT_SIZES], "favicon.png"),
+        )
         self.assertEqual(icons["32x32.png"], b"32")
+        self.assertEqual(icons["favicon.png"], icons["32x32.png"])
         self.assertEqual(render.call_args_list, [call(SVG, s) for s in DEFAULT_SIZES])
 
     def test_custom_sizes_replace_defaults_and_remove_duplicates(self):
         render = Mock(return_value=b"png")
         icons = generate_icons(SVG, iter([192, 32, 192]), render=render)
-        self.assertEqual(list(icons), ["32x32.png", "192x192.png"])
+        self.assertEqual(list(icons), ["32x32.png", "192x192.png", "favicon.png"])
         self.assertEqual(render.call_count, 2)
+
+    def test_favicon_is_rendered_when_custom_sizes_omit_32(self):
+        render = Mock(side_effect=lambda svg, size: str(size).encode())
+        icons = generate_icons(SVG, [512], render=render)
+        self.assertEqual(icons, {"512x512.png": b"512", "favicon.png": b"32"})
+        self.assertEqual(render.call_args_list, [call(SVG, 512), call(SVG, 32)])
 
     def test_invalid_sizes_fail_before_any_rendering(self):
         for sizes in ([], [32, 0], [-1], [MAX_SIZE + 1], [1.5], [True], ["32"]):
@@ -38,7 +47,9 @@ class GenerationTests(unittest.TestCase):
 
     def test_size_boundaries_are_allowed(self):
         icons = generate_icons(SVG, [1, MAX_SIZE], render=Mock(return_value=b"png"))
-        self.assertEqual(list(icons), ["1x1.png", f"{MAX_SIZE}x{MAX_SIZE}.png"])
+        self.assertEqual(
+            list(icons), ["1x1.png", f"{MAX_SIZE}x{MAX_SIZE}.png", "favicon.png"],
+        )
 
 
 class FileTests(unittest.TestCase):
